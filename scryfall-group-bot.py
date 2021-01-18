@@ -3,7 +3,7 @@ import re
 import requests
 import json
 from telegram.ext import Updater, CommandHandler, MessageHandler, MessageFilter, Filters, InlineQueryHandler
-from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultPhoto
+from telegram import InlineQueryResultPhoto
 from pathlib import Path
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -20,45 +20,53 @@ def start(update, context):
 
 
 def message_query(update, context):
-    found = re.search(".*\[\[(.+?)\]\].*", update.message.text)
-    ploads = {'q': found.group(1)}
-    r = requests.get("https://api.scryfall.com/cards/search", params=ploads)
-    response = r.json()
+    try:
+        found = re.search(".*\[\[(.+?)\]\].*", update.message.text)
+        ploads = {'q': found.group(1)}
+        r = requests.get("https://api.scryfall.com/cards/search", params=ploads)
+        response = r.json()
 
-    if r.status_code == 404:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Your query returned 0 result, check your "
-                                                                        "spelling!")
+        if int(r.status_code / 100) == 4:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Your query returned 0 result, check your "
+                                                                            "spelling!")
 
-    elif r.status_code == 200:
-        if response["total_cards"] > 1:
-            context.bot.send_message(chat_id=update.effective_chat.id, text="Your query returned more than one card. "
-                                                                            "This is the first result, if it isn't "
-                                                                            "correct try a more specific query!")
-        try:
-            image = response["data"][0]["image_uris"]
-            context.bot.send_photo(chat_id=update.effective_chat.id, photo=image["normal"])
-        except KeyError:
+        elif r.status_code == 200:
+            if response["total_cards"] > 1:
+                context.bot.send_message(chat_id=update.effective_chat.id, text="Your query returned more than one "
+                                                                                "card.This is the first result, if it "
+                                                                                "isn't correct try a more specific "
+                                                                                "query!")
             if "card_faces" in response["data"][0]:
                 image = response["data"][0]["card_faces"][0]["image_uris"]
                 context.bot.send_photo(chat_id=update.effective_chat.id, photo=image["normal"])
                 image = response["data"][0]["card_faces"][1]["image_uris"]
                 context.bot.send_photo(chat_id=update.effective_chat.id, photo=image["normal"])
-
-    else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text="An error has occurred!")
+            else:
+                image = response["data"][0]["image_uris"]
+                context.bot.send_photo(chat_id=update.effective_chat.id, photo=image["normal"])
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="We have some internal issues, we will "
+                                                                            "come back ASAP")
+    except:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="An unexpected error has occurred! Please "
+                                                                        "report this to: "
+                                                                        "https://github.com/michelepapucci/scryfall"
+                                                                        "-group-bot/issues")
 
 
 def inline_search(update, context):
     query = update.inline_query.query
     if not query:
         return
-    ploads = {'q': query}
-    r = requests.get("https://api.scryfall.com/cards/search", params=ploads)
-    response = r.json()
-    print(response)
+    try:
+        ploads = {'q': query}
+        r = requests.get("https://api.scryfall.com/cards/search", params=ploads)
+        response = r.json()
+    except:
+        response = False
     results = list()
     counter = 0
-    if r.status_code == 200:
+    if r.status_code == 200 and response:
         if response["total_cards"] > 0:
             for card in response["data"]:
                 if counter > 49:
@@ -84,10 +92,8 @@ def inline_search(update, context):
                         )
                     else:
                         counter = counter - 1
-                        
                 counter = counter + 1
-
-    context.bot.answer_inline_query(update.inline_query.id, results)
+            context.bot.answer_inline_query(update.inline_query.id, results)
 
 
 token_file = open(Path('conf/token.json'))
