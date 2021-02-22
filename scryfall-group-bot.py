@@ -97,7 +97,7 @@ def inline_search(update, context):
             update.inline_query.answer(results)
 
 
-token_file = open(Path('conf/token.json'))
+token_file = open(Path('token.json'))
 token_json = json.load(token_file)
 token_file.close()
 
