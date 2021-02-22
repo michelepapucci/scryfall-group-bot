@@ -16,7 +16,7 @@ class FilterQuery(MessageFilter):
 
 def start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text="Write [[Name of a MTG card]] to receive an image"
-                                                                    " of the card available on Skryfall")
+                                                                    " of the card available on Scryfall")
 
 
 def message_query(update, context):
@@ -64,6 +64,7 @@ def inline_search(update, context):
         response = r.json()
     except:
         response = False
+        r = {'status_code': 500}
     results = list()
     counter = 0
     if r.status_code == 200 and response:
@@ -93,12 +94,13 @@ def inline_search(update, context):
                     else:
                         counter = counter - 1
                 counter = counter + 1
-            context.bot.answer_inline_query(update.inline_query.id, results)
+            update.inline_query.answer(results)
 
 
 token_file = open(Path('conf/token.json'))
 token_json = json.load(token_file)
 token_file.close()
+
 updater = Updater(token=token_json["token"], use_context=True)
 dispatcher = updater.dispatcher
 
@@ -112,5 +114,9 @@ dispatcher.add_handler(message_handler)
 inline_search_handler = InlineQueryHandler(inline_search)
 dispatcher.add_handler(inline_search_handler)
 
-if __name__ == "__main__":
-    updater.start_polling()
+try:
+    if __name__ == "__main__":
+        updater.start_polling()
+        updater.idle()
+except KeyboardInterrupt:
+    print("closing")
