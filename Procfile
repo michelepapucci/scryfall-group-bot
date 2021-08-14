@@ -1,0 +1,1 @@
+worker: python scryfall-group-bot.py
