@@ -15,8 +15,15 @@ class FilterQuery(MessageFilter):
 
 
 def start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Write [[Name of a MTG card]] to receive an image"
-                                                                    " of the card available on Scryfall")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="You can chat with me here or you can add me to "
+                                                                    "your groupchat.\nWhen you send a message "
+                                                                    "containing [[name of a MTG card]] I will search "
+                                                                    "that card on the Scryfall MTG database and send "
+                                                                    "a photo of the card.\nIf you want to view a "
+                                                                    "preview of the sarch you can write in chat "
+                                                                    "@scryfallgroupbot name of the card, you will see "
+                                                                    "a collection of images corresponding to your "
+                                                                    "search query.\nHope I'll be useful!")
 
 
 def message_query(update, context):
@@ -104,7 +111,7 @@ token_file.close()
 updater = Updater(token=token_json["token"], use_context=True)
 dispatcher = updater.dispatcher
 
-start_handler = CommandHandler('start', start)
+start_handler = CommandHandler('howto', start)
 dispatcher.add_handler(start_handler)
 
 query_syntax_filter = FilterQuery()
