@@ -1,11 +1,8 @@
 import logging
 import re
 import requests
-import json
 from telegram.ext import Updater, CommandHandler, MessageHandler, MessageFilter, Filters, InlineQueryHandler
 from telegram import InlineQueryResultPhoto
-from pathlib import Path
-from boto.s3.connection import S3Connection
 import os
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
