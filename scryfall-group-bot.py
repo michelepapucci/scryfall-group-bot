@@ -5,6 +5,8 @@ import json
 from telegram.ext import Updater, CommandHandler, MessageHandler, MessageFilter, Filters, InlineQueryHandler
 from telegram import InlineQueryResultPhoto
 from pathlib import Path
+from boto.s3.connection import S3Connection
+import os
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
@@ -108,11 +110,9 @@ def inline_search(update, context):
             update.inline_query.answer(results)
 
 
-token_file = open(Path('token.json'))
-token_json = json.load(token_file)
-token_file.close()
+key = os.environ['TELEGRAM_APY_KEY']
 
-updater = Updater(token=token_json["token"], use_context=True)
+updater = Updater(token=key, use_context=True)
 dispatcher = updater.dispatcher
 
 howto_handler = CommandHandler('howto', howto)
